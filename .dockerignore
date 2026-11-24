@@ -1,0 +1,14 @@
+.git
+.github
+.venv
+venv
+tests
+evals
+sql
+scripts
+**/__pycache__
+.pytest_cache
+.ruff_cache
+artifacts/traces.jsonl
+artifacts/eval_report.*
+.env

@@ -1,0 +1,70 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGION: us-central1
+  SERVICE: support-agent
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e .
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build embedding index
+        env:
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+        run: python scripts/build_index.py
+
+      - name: Build and push image
+        id: image
+        run: |
+          img="${REGION}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/support-agent/api:${GITHUB_SHA::12}"
+          gcloud auth configure-docker ${REGION}-docker.pkg.dev --quiet
+          docker build -t "$img" .
+          docker push "$img"
+          echo "ref=$img" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy (no traffic)
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image "${{ steps.image.outputs.ref }}" \
+            --region "$REGION" \
+            --no-traffic --tag "sha-${GITHUB_SHA::7}" \
+            --no-allow-unauthenticated \
+            --service-account "${{ secrets.RUNTIME_SA }}" \
+            --set-env-vars "GCP_PROJECT=${{ secrets.GCP_PROJECT }},AGENT_CONFIG=/app/configs/production.yaml" \
+            --cpu 1 --memory 1Gi --concurrency 20 --timeout 60 \
+            --min-instances 1 --max-instances 20
+
+      - name: Smoke test
+        run: |
+          url=$(gcloud run services describe "$SERVICE" --region "$REGION" --format json \
+            | python3 -c "import json,sys; t=[x for x in json.load(sys.stdin)['status']['traffic'] if x.get('tag')=='sha-${GITHUB_SHA::7}']; print(t[0]['url'])")
+          token=$(gcloud auth print-identity-token --audiences "$url")
+          ./scripts/smoke_test.sh "$url" "$token"
+
+      - name: Shift traffic
+        run: |
+          gcloud run services update-traffic "$SERVICE" --region "$REGION" \
+            --to-tags "sha-${GITHUB_SHA::7}=100"

@@ -1,0 +1,73 @@
+name: eval
+
+# Full agent eval against Gemini. Only runs when something that changes answers
+# changes, because each run is ~150 agent conversations and costs real money.
+# Marked as a required check on main, so a PR that drops accuracy below the
+# threshold in configs/config.yaml can't merge.
+on:
+  pull_request:
+    paths:
+      - "src/support_agent/prompts/**"
+      - "src/support_agent/agent.py"
+      - "src/support_agent/tools.py"
+      - "src/support_agent/retrieval.py"
+      - "src/support_agent/guardrails.py"
+      - "data/manuals/**"
+      - "evals/**"
+      - "configs/config.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: eval-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  full-eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]"
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.EVAL_SA }}
+
+      - name: Run eval
+        id: eval
+        env:
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+        run: |
+          set +e
+          python evals/run_eval.py --mode full --workers 8 \
+            --out eval_report.json --markdown eval_report.md
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-report
+          path: eval_report.*
+
+      - name: Comment on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: agent-eval
+          path: eval_report.md
+
+      - name: Enforce thresholds
+        if: steps.eval.outputs.status != '0'
+        run: |
+          echo "::error::Eval below threshold. See eval_report.md for failing cases."
+          exit 1

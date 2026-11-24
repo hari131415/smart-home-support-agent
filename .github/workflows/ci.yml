@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev,api]"
+
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Unit tests
+        run: pytest --cov=support_agent --cov-report=term-missing
+
+      - name: Offline eval (retrieval + guardrails)
+        run: python evals/run_eval.py --mode offline --markdown offline_eval.md
+
+      - name: Job summary
+        if: always()
+        run: cat offline_eval.md >> "$GITHUB_STEP_SUMMARY" || true

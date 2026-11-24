@@ -1,0 +1,9 @@
+# Cloud Run: BigQuery for device status and traces instead of local files.
+# Selected with AGENT_CONFIG=/app/configs/production.yaml
+extends: config.yaml
+
+devices:
+  backend: bigquery
+
+tracing:
+  sink: bigquery

@@ -58,7 +58,7 @@ def test_production_config_extends_base():
     assert prod.devices["backend"] == "bigquery"
     assert prod.tracing["sink"] == "bigquery"
     # inherited, not overridden
-    assert prod.llm["model"] == "gemini-2.5-flash"
+    assert prod.llm["model"] == "gemini-3.8-flash"
     assert prod.devices["bq_table"] == "device_status"
 
 

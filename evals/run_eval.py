@@ -147,7 +147,7 @@ def main() -> int:
     p.add_argument("--config")
     p.add_argument("--out", help="write the JSON report here")
     p.add_argument("--markdown", help="write a markdown summary here (for PR comments)")
-    p.add_argument("--workers", type=int, default=8)
+    p.add_argument("--workers", type=int, default=3)
     p.add_argument("--limit", type=int, help="only run the first N cases (debugging)")
     args = p.parse_args()
 

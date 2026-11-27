@@ -22,10 +22,10 @@ def build_llm(cfg: Config):
         model=llm["model"],
         vertexai=True,
         project=cfg.gcp["project"] or None,
-        location=cfg.gcp["location"],
+        location=llm.get("location", cfg.gcp["location"]),
         temperature=llm["temperature"],
         max_output_tokens=llm["max_output_tokens"],
-        max_retries=2,
+        max_retries=llm.get("max_retries", 2),
     )
 
 

@@ -22,9 +22,9 @@ def test_trace_is_recorded(make_agent, sink):
     assert run.prompt_version == "v3" and len(run.prompt_hash) == 12
     kinds = [s.kind for s in sink.spans if s.trace_id == r.trace_id]
     assert kinds == ["guardrail", "llm", "tool", "llm", "guardrail"]
-    # 2 LLM calls x (900 in, 40 out) at gemini-2.5-flash prices
+    # 2 LLM calls x (900 in, 40 out) at gemini-3.8-flash prices
     assert run.input_tokens == 1800 and run.output_tokens == 80
-    assert run.cost_usd == round((1800 * 0.30 + 80 * 2.50) / 1e6, 6)
+    assert run.cost_usd == round((1800 * 0.75 + 80 * 3.75) / 1e6, 6)
 
 
 def test_low_confidence_hands_off(make_agent):

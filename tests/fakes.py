@@ -19,6 +19,8 @@ class ScriptedChatModel(BaseChatModel):
 
     script: Script
     calls: list[list[BaseMessage]] = []
+    bound: list[tuple[list[str], dict]] = []
+    offered: list[list[str]] = []
 
     @property
     def _llm_type(self) -> str:
@@ -29,7 +31,20 @@ class ScriptedChatModel(BaseChatModel):
         return ChatResult(generations=[ChatGeneration(message=self.script(messages))])
 
     def bind_tools(self, tools, **kwargs):
-        return self
+        names = [t.name for t in tools]
+        self.bound.append((names, kwargs))
+        return _Bound(self, names)
+
+
+class _Bound:
+    """What bind_tools returns: remembers which tools were offered on each call."""
+
+    def __init__(self, model: ScriptedChatModel, names: list[str]):
+        self.model, self.names = model, names
+
+    def invoke(self, messages):
+        self.model.offered.append(self.names)
+        return self.model.invoke(messages)
 
 
 _n = 0

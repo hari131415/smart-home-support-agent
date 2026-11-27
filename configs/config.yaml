@@ -38,6 +38,8 @@ retrieval:
 
 agent:
   max_steps: 6
+  # After this many manual searches the model must answer or escalate.
+  max_searches: 3
   # Model-reported confidence below this hands off to a human.
   min_confidence: 0.6
 

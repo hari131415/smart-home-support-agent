@@ -46,6 +46,7 @@ def settings_from(cfg: Config) -> AgentSettings:
     return AgentSettings(
         model_name=cfg.llm["model"],
         max_steps=cfg.agent["max_steps"],
+        max_searches=cfg.agent.get("max_searches", 3),
         min_confidence=cfg.agent["min_confidence"],
         min_bm25_score=cfg.retrieval["min_bm25_score"],
         top_k=cfg.retrieval["top_k"],

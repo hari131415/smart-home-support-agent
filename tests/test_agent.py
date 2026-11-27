@@ -113,6 +113,15 @@ def test_max_steps_hands_off(make_agent):
     assert r.handed_off and r.handoff_reason == "max_steps"
 
 
+def test_search_budget_leaves_only_respond_or_escalate(make_agent):
+    agent = make_agent(lambda m: tool_call("search_manuals", query="again"))
+    agent.run("thermostat", user_id="u-1001")
+    offered = agent.llm.offered
+    assert all("search_manuals" in names for names in offered[:3])
+    assert all(sorted(names) == ["escalate_to_human", "respond"] for names in offered[3:])
+    assert all(kw == {"tool_choice": "any"} for _, kw in agent.llm.bound)
+
+
 def test_llm_error_hands_off(make_agent, sink):
     def boom(messages):
         raise RuntimeError("quota exceeded")

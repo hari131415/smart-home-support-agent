@@ -64,6 +64,7 @@ class AgentResult:
 class AgentSettings:
     model_name: str
     max_steps: int = 6
+    max_searches: int = 3
     min_confidence: float = 0.6
     min_bm25_score: float = 4.0
     top_k: int = 5
@@ -129,7 +130,14 @@ class SupportAgent:
             top_k=self.settings.top_k,
         )
         tools = {tool.name: tool for tool in build_tools(ctx)}
-        llm = self.llm.bind_tools(list(tools.values()))
+        # tool_choice="any": every turn is a tool call, so the answer always goes
+        # through `respond` and its checks instead of arriving as plain text.
+        llm = self.llm.bind_tools(list(tools.values()), tool_choice="any")
+        # Used on the last step or once the search budget is spent. Without it the
+        # model kept rephrasing searches until max_steps (26/150 in the first live eval).
+        llm_final = self.llm.bind_tools(
+            [tools["respond"], tools["escalate_to_human"]], tool_choice="any"
+        )
         messages: list[BaseMessage] = [
             SystemMessage(self.prompt.text),
             *history,
@@ -137,10 +145,14 @@ class SupportAgent:
         ]
         called: list[str] = []
 
-        for _ in range(self.settings.max_steps):
+        for step in range(self.settings.max_steps):
+            must_answer = (
+                step == self.settings.max_steps - 1
+                or called.count("search_manuals") >= self.settings.max_searches
+            )
             t = time.perf_counter()
             try:
-                ai: AIMessage = llm.invoke(messages)
+                ai: AIMessage = (llm_final if must_answer else llm).invoke(messages)
             except Exception as exc:  # noqa: BLE001
                 tracer.record("llm", self.settings.model_name, t, error=repr(exc))
                 log.exception("llm call failed")
@@ -160,7 +172,7 @@ class SupportAgent:
             if not ai.tool_calls:
                 # Model answered in plain text instead of calling respond. Treat
                 # it as an ungrounded answer so the output check decides.
-                return self._finish(str(ai.content), [], 0.5, ctx, called, tracer)
+                return self._finish(ai.text, [], 0.5, ctx, called, tracer)
 
             for call in ai.tool_calls:
                 name, args = call["name"], call["args"]

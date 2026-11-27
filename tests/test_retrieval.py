@@ -58,3 +58,15 @@ def test_hybrid_with_dense(chunks, tmp_path):
     assert (tmp_path / "vectors.npz").exists()
     r2 = HybridRetriever(chunks, embedder=HashEmbedder(), cache_dir=tmp_path)
     assert (r2.vectors == r.vectors).all()
+
+
+def test_query_embedding_error_falls_back_to_bm25(chunks, tmp_path):
+    class QuotaExceeded(HashEmbedder):
+        def embed_query(self, text):
+            raise RuntimeError("429 RESOURCE_EXHAUSTED")
+
+    HybridRetriever(chunks, embedder=HashEmbedder(), cache_dir=tmp_path)  # cache the vectors
+    r = HybridRetriever(chunks, embedder=QuotaExceeded(), cache_dir=tmp_path)
+    hits = r.search("factory reset the hub", k=3)
+    assert hits[0].chunk.id == "hub_h1#reset"
+    assert hits[0].dense is None and r.dense_failures == 1

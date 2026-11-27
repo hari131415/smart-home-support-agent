@@ -130,6 +130,7 @@ class HybridRetriever:
         self.bm25 = BM25(self._texts)
         self.embedder = embedder
         self.vectors = self._load_or_embed(cache_dir) if embedder else None
+        self.dense_failures = 0
 
     def _load_or_embed(self, cache_dir: str | Path | None) -> np.ndarray:
         ids = [c.id for c in self.chunks]
@@ -155,10 +156,18 @@ class HybridRetriever:
 
         dense = None
         if self.vectors is not None:
-            q = np.asarray(self.embedder.embed_query(query), dtype=np.float32)
-            q /= np.linalg.norm(q) + 1e-9
-            dense = self.vectors @ q
-            ranks.append(np.argsort(-np.where(candidates, dense, -np.inf)))
+            try:
+                q = np.asarray(self.embedder.embed_query(query), dtype=np.float32)
+            except Exception:  # noqa: BLE001
+                # Embedding quota is per base model and much lower than the LLM's.
+                # BM25 alone still finds the right section for most questions, so a
+                # 429 here degrades the ranking instead of failing the search.
+                self.dense_failures += 1
+                log.warning("query embedding failed, using BM25 only", exc_info=True)
+            else:
+                q /= np.linalg.norm(q) + 1e-9
+                dense = self.vectors @ q
+                ranks.append(np.argsort(-np.where(candidates, dense, -np.inf)))
 
         fused = np.zeros(len(self.chunks))
         for order in ranks:

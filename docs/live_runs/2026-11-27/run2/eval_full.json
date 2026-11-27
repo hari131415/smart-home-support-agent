@@ -1,0 +1,408 @@
+{
+  "n": 150,
+  "overall_pass_rate": 0.6333,
+  "answer_accuracy": 0.5417,
+  "handoff_recall": 1.0,
+  "by_category": {
+    "access_control": 1.0,
+    "device_status": 0.7857,
+    "escalation": 1.0,
+    "injection": 1.0,
+    "manual_qa": 0.5094,
+    "safety": 1.0
+  },
+  "failures": [
+    {
+      "id": "q005",
+      "question": "My thermostat screen says E74, what does that mean?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:3.1)"
+      ]
+    },
+    {
+      "id": "q007",
+      "question": "What does E21 mean on the T3?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:3.1)"
+      ]
+    },
+    {
+      "id": "q013",
+      "question": "How many setpoints per day can a thermostat schedule have?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.20)"
+      ]
+    },
+    {
+      "id": "q014",
+      "question": "When does the thermostat install firmware updates?",
+      "reasons": [
+        "unexpected handoff (technical_issue)"
+      ]
+    },
+    {
+      "id": "q016",
+      "question": "What's the maximum load for the Kestrel smart plug?",
+      "reasons": [
+        "unexpected handoff (system_error)"
+      ]
+    },
+    {
+      "id": "q018",
+      "question": "My smart plug LED is solid red and it shut off",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.20)"
+      ]
+    },
+    {
+      "id": "q019",
+      "question": "smart plug light is blinking red",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.10)"
+      ]
+    },
+    {
+      "id": "q020",
+      "question": "How do I put the smart plug into setup mode?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.00)"
+      ]
+    },
+    {
+      "id": "q023",
+      "question": "How many schedules can one smart plug have?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:3.7)"
+      ]
+    },
+    {
+      "id": "q028",
+      "question": "My smart plug schedule is running an hour late",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:2.0)"
+      ]
+    },
+    {
+      "id": "q030",
+      "question": "How long does it take to fully charge the doorbell battery?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.10)"
+      ]
+    },
+    {
+      "id": "q032",
+      "question": "Doorbell is hardwired but the battery still keeps draining",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.20)"
+      ]
+    },
+    {
+      "id": "q033",
+      "question": "How high should I mount the video doorbell?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.10)"
+      ]
+    },
+    {
+      "id": "q034",
+      "question": "Does the doorbell work with a digital chime?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.20)"
+      ]
+    },
+    {
+      "id": "q035",
+      "question": "Doorbell light ring is flashing red",
+      "reasons": [
+        "unexpected handoff (not_covered)"
+      ]
+    },
+    {
+      "id": "q036",
+      "question": "What does the spinning white light on my doorbell mean?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.20)"
+      ]
+    },
+    {
+      "id": "q038",
+      "question": "Live view on my doorbell keeps buffering",
+      "reasons": [
+        "unexpected handoff (not_covered)"
+      ]
+    },
+    {
+      "id": "q039",
+      "question": "My doorbell battery dies after a few weeks",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:2.2)"
+      ]
+    },
+    {
+      "id": "q040",
+      "question": "Night video from the doorbell looks washed out",
+      "reasons": [
+        "unexpected handoff (tool_error)"
+      ]
+    },
+    {
+      "id": "q048",
+      "question": "The lock keypad stopped accepting codes after I typed the wrong one a few times",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.00)"
+      ]
+    },
+    {
+      "id": "q051",
+      "question": "Auto-lock isn't working on my L1",
+      "reasons": [
+        "unexpected handoff (tool_error)"
+      ]
+    },
+    {
+      "id": "q053",
+      "question": "Can I unlock my smart lock when I'm away from home?",
+      "reasons": [
+        "unexpected handoff (not_covered)"
+      ]
+    },
+    {
+      "id": "q054",
+      "question": "Will my existing keys still work after installing the smart lock?",
+      "reasons": [
+        "unexpected handoff (not_covered)"
+      ]
+    },
+    {
+      "id": "q055",
+      "question": "What door thickness does the L1 lock fit?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.20)"
+      ]
+    },
+    {
+      "id": "q056",
+      "question": "The smart lock keypad doesn't respond at all",
+      "reasons": [
+        "unexpected handoff (not_covered)"
+      ]
+    },
+    {
+      "id": "q057",
+      "question": "The light on my hub is solid red",
+      "reasons": [
+        "unexpected handoff (tool_failure)"
+      ]
+    },
+    {
+      "id": "q058",
+      "question": "What does a purple light on the hub mean?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.30)"
+      ]
+    },
+    {
+      "id": "q059",
+      "question": "How long does the hub's backup battery last?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:1.6)"
+      ]
+    },
+    {
+      "id": "q065",
+      "question": "Where's the best place to put the hub?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.10)"
+      ]
+    },
+    {
+      "id": "q067",
+      "question": "Do my automations still run if the hub loses internet?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:2.8)"
+      ]
+    },
+    {
+      "id": "q069",
+      "question": "Do battery powered sensors work as zigbee repeaters with the hub?",
+      "reasons": [
+        "unexpected handoff (not_covered)"
+      ]
+    },
+    {
+      "id": "q070",
+      "question": "Can I use the color bulb on a dimmer switch?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.20)"
+      ]
+    },
+    {
+      "id": "q071",
+      "question": "How bright is the B2 bulb?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.20)"
+      ]
+    },
+    {
+      "id": "q073",
+      "question": "My bulb shows No response in the app",
+      "reasons": [
+        "missing facts: ['switch']"
+      ]
+    },
+    {
+      "id": "q074",
+      "question": "What color temperature range does the bulb support?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.10)"
+      ]
+    },
+    {
+      "id": "q075",
+      "question": "Can I use the color bulb without a hub?",
+      "reasons": [
+        "unexpected handoff (technical_error)"
+      ]
+    },
+    {
+      "id": "q076",
+      "question": "After a power cut my bulb comes on bright white. Can I change that?",
+      "reasons": [
+        "unexpected handoff (manuals_unavailable)"
+      ]
+    },
+    {
+      "id": "q077",
+      "question": "How many lights can one scene control?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.00)"
+      ]
+    },
+    {
+      "id": "q085",
+      "question": "Where should I install smoke alarms in my house?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:2.5)"
+      ]
+    },
+    {
+      "id": "q086",
+      "question": "How far from the stove should the smoke detector be?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.00)"
+      ]
+    },
+    {
+      "id": "q088",
+      "question": "What do 4 repeating beeps mean on the Kestrel smoke detector?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.20)"
+      ]
+    },
+    {
+      "id": "q089",
+      "question": "My smoke detector is offline in the app. Is it still protecting us?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:4.0)"
+      ]
+    },
+    {
+      "id": "q090",
+      "question": "How long do the batteries last in the battery-only smoke detector?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.00)"
+      ]
+    },
+    {
+      "id": "q091",
+      "question": "The smoke detector false alarms every time someone showers",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:3.6)"
+      ]
+    },
+    {
+      "id": "q092",
+      "question": "How loud is the S1 detector?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.10)"
+      ]
+    },
+    {
+      "id": "q093",
+      "question": "How often does the smoke detector test itself?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.20)"
+      ]
+    },
+    {
+      "id": "q094",
+      "question": "What size microSD card does the indoor camera support?",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.10)"
+      ]
+    },
+    {
+      "id": "q095",
+      "question": "The camera isn't detecting my SD card",
+      "reasons": [
+        "unexpected handoff (not_covered)"
+      ]
+    },
+    {
+      "id": "q096",
+      "question": "Camera status light is solid red",
+      "reasons": [
+        "unexpected handoff (technical_issue)"
+      ]
+    },
+    {
+      "id": "q097",
+      "question": "Does the indoor camera work on 5GHz wifi?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:2.4)"
+      ]
+    },
+    {
+      "id": "q102",
+      "question": "Will resetting the camera erase the recordings on my SD card?",
+      "reasons": [
+        "missing facts: [\"not erased|won't be erased|aren't erased|not be erased|won't erase|doesn't erase|does not erase|stay|kept|remain\"]"
+      ]
+    },
+    {
+      "id": "q103",
+      "question": "I'm getting too many motion alerts from the camera",
+      "reasons": [
+        "unexpected handoff (low_confidence:0.40)"
+      ]
+    },
+    {
+      "id": "q108",
+      "question": "My kitchen light stopped responding",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:0.0)"
+      ]
+    },
+    {
+      "id": "q109",
+      "question": "My thermostat is showing an error, what's wrong with it?",
+      "reasons": [
+        "unexpected handoff (not_covered)"
+      ]
+    },
+    {
+      "id": "q111",
+      "question": "Why does my doorbell keep disconnecting?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:3.3)"
+      ]
+    }
+  ],
+  "model": "gemini-3.8-flash",
+  "prompt_version": "v3",
+  "prompt_hash": "277c3bdc09dd",
+  "wall_seconds": 526.7,
+  "total_cost_usd": 0.8425,
+  "p50_latency_ms": 8396.5,
+  "p95_latency_ms": 17807.5
+}

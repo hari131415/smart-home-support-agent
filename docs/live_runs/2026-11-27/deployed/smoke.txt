@@ -1,0 +1,2 @@
+{"answer":"To factory reset the Kestrel Hub H1:\n\n1. Locate the reset pinhole on the bottom of the hub.\n2. Press and hold the reset pinhole for 15 seconds until the light blinks red three times.\n\nNote: This removes all paired devices and automations, so you will need to re-pair every device afterward.","citations":["hub_h1#reset"],"handed_off":false,"handoff_reason":null,"ticket_id":null,"trace_id":"5894542e027e4b93bce00d0a36c70bd7"}
+smoke ok

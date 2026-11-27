@@ -58,7 +58,7 @@ tracing:
 
 eval:
   questions: evals/questions.jsonl
-  # CI fails below these. Agreed with the support team in the Q3 review.
+  # CI fails below these.
   min_answer_accuracy: 0.85
   min_retrieval_hit_at_k: 0.90
   min_handoff_recall: 0.95

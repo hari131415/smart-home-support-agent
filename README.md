@@ -67,8 +67,12 @@ colors ("E74", "blinking red"). Embeddings (`text-embedding-005`) catch the
 paraphrases: "it keeps turning on and off" should find "short cycling". The two
 rankings are combined with reciprocal rank fusion, so there's no score
 calibration to maintain. When the question names a device, search is restricted
-to that device's manual. Before that filter, generic sections like "Factory reset"
-from the wrong device kept winning.
+to that device's manual. Without that filter, generic sections like "Factory reset"
+from other devices can outrank the right one.
+
+If the query embedding call fails (the embedding quota is much lower than the
+LLM's), that search falls back to BM25 only instead of failing. See the second
+live run below for why.
 
 Embeddings are computed once in CD (`scripts/build_index.py`) and baked into
 the image, so cold starts don't call the embedding API.
@@ -94,8 +98,8 @@ headings aren't reliable.
 | injection | 2 | refuse without leaking the system prompt |
 
 Answers are graded by required facts (`"10 seconds"`, `"E74"`, `"2.4"`), with
-alternatives separated by `|`. I tried an LLM judge first. On short factual
-answers it was noisier than string matching and cost more than the agent run.
+alternatives separated by `|`. The graded facts are short and exact, so string
+matching is cheaper and more predictable here than an LLM judge.
 A unit test checks that every graded fact actually appears in the manual section
 it's supposed to come from, so the eval set can't silently drift from the docs.
 
@@ -106,7 +110,8 @@ Two levels in CI:
 | `ci.yml` | every PR | unit tests + offline eval: retrieval hit@5 on BM25, safety triage recall/false positives | hit@5 ≥ 0.90, safety recall = 100%, 0 false positives |
 | `eval.yml` | PRs touching prompts, agent, tools, retrieval, manuals or evals | full 150-case run against Gemini, results posted as a PR comment | answer accuracy ≥ 0.85, handoff recall ≥ 0.95, no cross-account leaks |
 
-Current offline numbers: **98.1% retrieval hit@5** (BM25 only; the two misses
+Offline numbers (`python evals/run_eval.py --mode offline`, no GCP needed):
+**98.1% retrieval hit@5** (BM25 only; the two misses
 are paraphrase questions that the embedding side picks up), **100% safety
 recall**, **0% false positives** on the 120 benign questions.
 
@@ -114,6 +119,48 @@ recall**, **0% false positives** on the 120 benign questions.
 python evals/run_eval.py --mode offline
 GCP_PROJECT=my-proj python evals/run_eval.py --mode full --out report.json
 ```
+
+## Live runs on GCP
+
+Run on 2026-11-27 in my GCP project: `gemini-3.8-flash` on the Vertex AI global
+endpoint, `text-embedding-005` in us-central1, prompt `v3`, all 150 eval cases.
+Reports are in `docs/live_runs/`.
+
+| run | code | answer accuracy | handoff recall | overall | cost | p50 / p95 latency |
+|---|---|---|---|---|---|---|
+| 1 | model switch only | 29.2% | 100% | 43.3% | $0.83* | 9.8 s / 27.4 s |
+| 2 | + forced tool calls, search budget | 54.2% | 100% | 63.3% | $0.84 | 8.4 s / 17.8 s |
+| 3 | + BM25 fallback on embedding errors | **93.3%** | **100%** | **94.7%** | **$0.72** | 8.4 s / 28.7 s |
+
+\* Run 1 logged $0 because the new model wasn't in the price table yet; this is
+recomputed from its logged tokens (585k in, 104k out) at list price.
+
+Safety, injection, escalation and access-control cases passed 100% in all three
+runs. What each run found:
+
+1. `gemini-2.5-flash` returned 404, so the config moved to `gemini-3.8-flash`,
+   which is only served from `global`. Of the failures: 38 cases were 429s at
+   6 eval workers with 2 retries, 26 hit `max_steps` because the model kept
+   rephrasing searches, and 21 answered in plain text instead of calling
+   `respond`, which the loop treats as ungrounded. Fixes: 6 retries and 3
+   workers, `tool_choice="any"` on every turn, and after 3 searches only
+   `respond` and `escalate_to_human` are offered.
+2. 49 of the 55 failures had every `search_manuals` call fail on a 429 from the
+   embedding model, so the agent saw no manual text and handed off. Fix: BM25-only
+   fallback for that search.
+3. 0 embedding errors. Remaining misses: 7 `weak_retrieval` handoffs and 1
+   answer missing a required fact (see Known gaps).
+
+Cost per question in run 3 is about $0.005 at the 3.8-flash price through
+2026-12-31 ($0.75 / $3.75 per 1M tokens; it doubles on 2027-01-01).
+
+**Deployed service.** Revision `support-agent-00003-w9f` (image tag
+`6ff2de95de44`) on Cloud Run, us-central1, private. `scripts/smoke_test.sh`
+passed, and 8 sample requests behaved as expected: device-status and manual
+answers with citations in 4-12 s, the gas-smell message got the fixed safety
+reply in 0.17 s, the injection attempt got the refusal, a request for another
+user's devices returned only the caller's own, and the weather question was
+handed off. Those runs were read back from the BigQuery trace tables and views.
 
 ## Prompt versioning
 
@@ -129,8 +176,8 @@ handoff reason, tokens, cost, latency, prompt version). `agent_spans` gets one
 row per step. Rows are buffered and written once after the answer is ready, and a
 failed insert is logged, never raised. `sql/views.sql` has the dashboard views:
 daily cost and handoff rate by prompt version, handoff reasons, tool error rates,
-and the most-cited manual sections. The docs team uses that last one to see what
-customers actually need.
+and the most-cited manual sections, which shows what customers actually need
+from the docs.
 
 Token prices live in `configs/config.yaml`, so update them when switching models.
 
@@ -164,9 +211,13 @@ curl -s localhost:8080/chat -H 'Content-Type: application/json' -H 'X-User-Id: u
 
 `deploy.yml` on merge to main: build the embedding index → build the image →
 deploy to Cloud Run with no traffic on a tagged revision → smoke test → shift
-traffic. The service is deployed with `--no-allow-unauthenticated`. It sits
-behind the API gateway, which validates the customer's session and sets
-`X-User-Id`.
+traffic. The service is deployed with `--no-allow-unauthenticated` and is meant
+to sit behind an API gateway that validates the customer's session and sets
+`X-User-Id`; the service itself trusts that header.
+
+The workflows need the secrets below. The runs reported in this README were
+done by hand from Cloud Shell with the same steps (`gcloud builds submit`,
+`gcloud run deploy`, `scripts/smoke_test.sh`), not through Actions.
 
 Secrets: `GCP_PROJECT`, `WIF_PROVIDER` (Workload Identity Federation, no JSON
 keys), `DEPLOY_SA`, `RUNTIME_SA` (Vertex AI user + BigQuery read on
@@ -198,4 +249,12 @@ sql/               tables and dashboard views
   every benign question in the eval set for false positives, but a small
   classifier would generalize better to new phrasings.
 - The fact-based grading can't catch an answer that has the right facts plus an
-  extra wrong step. Spot-checking failed and passed traces weekly covers that for now.
+  extra wrong step. Reading a sample of traces is the stopgap until there is a
+  better grader.
+- Short error-code questions ("What does E21 mean on the T3?") can score just
+  under the BM25 evidence threshold (4.0) and get handed off even though the
+  right section was retrieved. 7 of the 8 misses in the last live run are this.
+  Lowering the threshold would fix the eval and also let weaker evidence
+  through, so it needs its own set of should-hand-off cases first.
+- p95 latency is about 29 s against a 60 s Cloud Run timeout. Before the search
+  budget, one request hit the timeout (504).

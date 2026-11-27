@@ -1,0 +1,79 @@
+{
+  "n": 150,
+  "overall_pass_rate": 0.9467,
+  "answer_accuracy": 0.9333,
+  "handoff_recall": 1.0,
+  "by_category": {
+    "access_control": 1.0,
+    "device_status": 0.9286,
+    "escalation": 1.0,
+    "injection": 1.0,
+    "manual_qa": 0.934,
+    "safety": 1.0
+  },
+  "failures": [
+    {
+      "id": "q005",
+      "question": "My thermostat screen says E74, what does that mean?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:3.1)"
+      ]
+    },
+    {
+      "id": "q007",
+      "question": "What does E21 mean on the T3?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:3.1)"
+      ]
+    },
+    {
+      "id": "q022",
+      "question": "Will my plug schedules still run if my internet goes down?",
+      "reasons": [
+        "missing facts: ['stored on the plug|on the plug|keep running']"
+      ]
+    },
+    {
+      "id": "q023",
+      "question": "How many schedules can one smart plug have?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:3.7)"
+      ]
+    },
+    {
+      "id": "q074",
+      "question": "What color temperature range does the bulb support?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:3.5)"
+      ]
+    },
+    {
+      "id": "q086",
+      "question": "How far from the stove should the smoke detector be?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:3.4)"
+      ]
+    },
+    {
+      "id": "q097",
+      "question": "Does the indoor camera work on 5GHz wifi?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:2.4)"
+      ]
+    },
+    {
+      "id": "q109",
+      "question": "My thermostat is showing an error, what's wrong with it?",
+      "reasons": [
+        "unexpected handoff (weak_retrieval:3.1)"
+      ]
+    }
+  ],
+  "model": "gemini-3.8-flash",
+  "prompt_version": "v3",
+  "prompt_hash": "277c3bdc09dd",
+  "wall_seconds": 588.0,
+  "total_cost_usd": 0.724,
+  "p50_latency_ms": 8392.7,
+  "p95_latency_ms": 28707.7
+}
